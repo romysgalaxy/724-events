@@ -51,4 +51,59 @@ describe("When a data context is created", () => {
       </DataProvider>
     );
   });
+  describe("and the data is loaded", () => {
+    it("the last event is the most recent by date", async () => {
+      api.loadData = jest.fn().mockReturnValue({
+        events: [
+          { id: 1, type: "conférence", date: "2022-01-29T20:28:45.744Z", title: "Event January" },
+          { id: 2, type: "forum", date: "2022-04-29T20:28:45.744Z", title: "Event April" },
+          { id: 3, type: "soirée", date: "2022-02-15T20:28:45.744Z", title: "Event February" },
+        ],
+      });
+      const Component = () => {
+        const { last } = useData();
+        return <div>{last?.title}</div>;
+      };
+      render(
+        <DataProvider>
+          <Component />
+        </DataProvider>
+      );
+      const lastEvent = await screen.findByText("Event April");
+      expect(lastEvent).toBeInTheDocument();
+    });
+    it("last is undefined when there are no events", async () => {
+      api.loadData = jest.fn().mockReturnValue({ events: [] });
+      const Component = () => {
+        const { data, last } = useData();
+        return (
+          <div>
+            <span>{data ? "loaded" : "loading"}</span>
+            <span>{last ? last.title : "no-last"}</span>
+          </div>
+        );
+      };
+      render(
+        <DataProvider>
+          <Component />
+        </DataProvider>
+      );
+      await screen.findByText("loaded");
+      expect(screen.getByText("no-last")).toBeInTheDocument();
+    });
+    it("data is not reloaded when already present", async () => {
+      api.loadData = jest.fn().mockReturnValue({ result: "ok" });
+      const Component = () => {
+        const { data } = useData();
+        return <div>{data?.result}</div>;
+      };
+      render(
+        <DataProvider>
+          <Component />
+        </DataProvider>
+      );
+      await screen.findByText("ok");
+      expect(api.loadData).toHaveBeenCalledTimes(1);
+    });
+  });
 });
