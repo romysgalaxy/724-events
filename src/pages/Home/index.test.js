@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import Home from "./index";
 import { api, DataProvider } from "../../contexts/DataContext";
 
@@ -62,6 +62,72 @@ describe("When Form is created", () => {
 
 });
 
+
+describe("Test E2E — Parcours de contact utilisateur", () => {
+  it("Étape 1 : le formulaire affiche bien tous ses champs (Nom, Prénom, Email, Message)", async () => {
+    renderHome();
+    await screen.findByText("Email");
+    expect(screen.getByText("Nom")).toBeInTheDocument();
+    expect(screen.getByText("Prénom")).toBeInTheDocument();
+    expect(screen.getByText("Email")).toBeInTheDocument();
+    expect(screen.getByText("Message")).toBeInTheDocument();
+    expect(screen.getByText("Personel / Entreprise")).toBeInTheDocument();
+  });
+
+  it("Étape 2 : l'utilisateur peut saisir ses informations dans tous les champs", async () => {
+    renderHome();
+    await screen.findByText("Email");
+
+    const nomInput = screen.getByText("Nom").parentElement.querySelector("input");
+    const prenomInput = screen.getByText("Prénom").parentElement.querySelector("input");
+    const emailInput = screen.getByText("Email").parentElement.querySelector("input");
+    const messageInput = screen.getByText("Message").parentElement.querySelector("textarea");
+
+    fireEvent.change(nomInput, { target: { value: "Dupont" } });
+    fireEvent.change(prenomInput, { target: { value: "Marie" } });
+    fireEvent.change(emailInput, { target: { value: "marie@test.com" } });
+    fireEvent.change(messageInput, {
+      target: { value: "Bonjour, je souhaite organiser un événement." },
+    });
+
+    expect(nomInput.value).toBe("Dupont");
+    expect(prenomInput.value).toBe("Marie");
+    expect(emailInput.value).toBe("marie@test.com");
+    expect(messageInput.value).toBe("Bonjour, je souhaite organiser un événement.");
+  });
+
+  it("Étape 3 : l'utilisateur peut sélectionner « Entreprise » dans le menu déroulant", async () => {
+    renderHome();
+    await screen.findByText("Personel / Entreprise");
+
+    const select = screen.getByText("Personel / Entreprise").parentElement;
+    fireEvent.click(within(select).getByTestId("collapse-button-testid"));
+    fireEvent.click(within(select).getByText("Entreprise"));
+
+    expect(within(select).getByText("Entreprise")).toBeInTheDocument();
+  });
+
+  it("Étape 4 : la soumission du formulaire déclenche bien l'état de chargement « En cours »", async () => {
+    renderHome();
+    fireEvent.click(await screen.findByText("Envoyer"));
+    await screen.findByText("En cours");
+  });
+
+  it("Étape 5 : la modale de confirmation « Message envoyé ! » s'affiche après envoi", async () => {
+    renderHome();
+    fireEvent.click(await screen.findByText("Envoyer"));
+    await screen.findByText("Message envoyé !");
+    expect(screen.getByText(/Merci pour votre message/i)).toBeInTheDocument();
+  });
+
+  it("Étape 6 : la modale peut être fermée par l'utilisateur via le bouton de fermeture", async () => {
+    renderHome();
+    fireEvent.click(await screen.findByText("Envoyer"));
+    await screen.findByText("Message envoyé !");
+    fireEvent.click(screen.getByTestId("close-modal"));
+    expect(screen.queryByText("Message envoyé !")).not.toBeInTheDocument();
+  });
+});
 
 describe("When a page is created", () => {
   it("a list of events is displayed", async () => {
