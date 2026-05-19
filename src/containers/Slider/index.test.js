@@ -52,6 +52,7 @@ describe("When slider is created", () => {
     await screen.findByText("World Gaming Day");
     const slides = screen.getAllByRole("img", { name: "forum" });
     const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(slides).toHaveLength(3);
     expect(headings[0].textContent).toBe("World Gaming Day");
     expect(headings[1].textContent).toBe("World economic forum");
     expect(headings[2].textContent).toBe("World Farming Day");
