@@ -27,7 +27,7 @@ export const DataProvider = ({ children }) => {
     }
   }, []);
   useEffect(() => {
-    if (data) return;
+    if (data || error) return;
     getData();
   });
   
