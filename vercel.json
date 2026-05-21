@@ -1,4 +1,4 @@
 {
-  "buildCommand": "CI=true react-scripts test --watchAll=false --verbose && react-scripts build",
+  "buildCommand": "CI=true react-scripts test --watchAll=false --verbose 2>&1 && react-scripts build 2>&1",
   "framework": "create-react-app"
 }
